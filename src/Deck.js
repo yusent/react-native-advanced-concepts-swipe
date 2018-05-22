@@ -1,5 +1,8 @@
 import React from 'react';
-import { Animated, PanResponder, View } from 'react-native';
+import { Animated, Dimensions, PanResponder, View } from 'react-native';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SWIPE_THRESHOLD = SCREEN_WIDTH / 4;
 
 export default class Deck extends React.Component {
   constructor(props) {
@@ -12,8 +15,38 @@ export default class Deck extends React.Component {
       onPanResponderMove: (event, gesture) => {
         this._position.setValue({ x: gesture.dx, y: gesture.dy });
       },
-      onPanResponderRelease: () => {},
+      onPanResponderRelease: (event, gesture) => {
+        if (gesture.dx > SWIPE_THRESHOLD) {
+          this._forceSwipe('right');
+        } else if (gesture.dx < -SWIPE_THRESHOLD) {
+          this._forceSwipe('left');
+        } else {
+          this._resetPosition();
+        }
+      },
     });
+  }
+
+  _forceSwipe(direction) {
+    const x = direction === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH;
+
+    Animated.timing(this._position, {
+      duration: 250,
+      toValue: { x, y: 0 },
+    }).start();
+  }
+
+  _getCardStyle() {
+    const { _position } = this;
+    const rotate = _position.x.interpolate({
+      inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
+      outputRange: ['-90deg', '0deg', '90deg'],
+    });
+
+    return {
+      ..._position.getLayout(),
+      transform: [{ rotate }],
+    };
   }
 
   _renderCards() {
@@ -22,7 +55,7 @@ export default class Deck extends React.Component {
         return (
           <Animated.View
             key={ item.id }
-            style={ this._position.getLayout() }
+            style={ this._getCardStyle() }
             { ...this._panResponder.panHandlers }
           >
             { this.props.renderCard(item) }
@@ -32,6 +65,13 @@ export default class Deck extends React.Component {
 
       return this.props.renderCard(item);
     });
+  }
+
+  _resetPosition() {
+    Animated.timing(this._position, {
+      duration: 250,
+      toValue: { x: 0, y: 0 },
+    }).start();
   }
 
   render() {
