@@ -1,5 +1,5 @@
 import React from 'react';
-import { Animated, Dimensions, PanResponder, View } from 'react-native';
+import { Animated, Dimensions, PanResponder, StyleSheet, View } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH / 4;
@@ -89,14 +89,18 @@ export default class Deck extends React.Component {
         return (
           <Animated.View
             key={ item.id }
-            style={ this._getCardStyle() }
+            style={ [this._getCardStyle(), styles.card, { zIndex: index * -1 }] }
             { ...this._panResponder.panHandlers }
           >
             { this.props.renderCard(item) }
           </Animated.View>
         );
       } else if (index > this.state.index) {
-        return this.props.renderCard(item);
+        return (
+          <Animated.View key={ item.id } style={ [styles.card, { zIndex: index * -1 }] }>
+            { this.props.renderCard(item) }
+          </Animated.View>
+        );
       }
     });
   }
@@ -108,3 +112,10 @@ export default class Deck extends React.Component {
     }).start();
   }
 }
+
+const styles = StyleSheet.create({
+  card: {
+    position: 'absolute',
+    width: SCREEN_WIDTH,
+  },
+});
