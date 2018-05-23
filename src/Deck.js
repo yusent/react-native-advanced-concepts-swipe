@@ -5,8 +5,15 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH / 4;
 
 export default class Deck extends React.Component {
+  static defaultProps = {
+    onSwipeLeft: () => {},
+    onSwipeRight: () => {},
+  };
+
   constructor(props) {
     super(props);
+
+    this.state = { index: 0 };
 
     this._position = new Animated.ValueXY();
 
@@ -27,13 +34,21 @@ export default class Deck extends React.Component {
     });
   }
 
+  render() {
+    return (
+      <View>
+        { this._renderCards() }
+      </View>
+    );
+  }
+
   _forceSwipe(direction) {
     const x = direction === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH;
 
     Animated.timing(this._position, {
       duration: 250,
       toValue: { x, y: 0 },
-    }).start();
+    }).start(() => this._onSwipeComplete(direction));
   }
 
   _getCardStyle() {
@@ -49,9 +64,23 @@ export default class Deck extends React.Component {
     };
   }
 
+  _onSwipeComplete(direction) {
+    const { data, onSwipeLeft, onSwipeRight } = this.props;
+    const item = data[this.state.index];
+
+    if (direction === 'right') {
+      onSwipeRight(item);
+    } else {
+      onSwipeLeft(item);
+    }
+
+    this._position.setValue({ x: 0, y: 0 });
+    this.setState({ index: this.state.index + 1 });
+  }
+
   _renderCards() {
     return this.props.data.map((item, index) => {
-      if (index === 0) {
+      if (index === this.state.index) {
         return (
           <Animated.View
             key={ item.id }
@@ -61,9 +90,9 @@ export default class Deck extends React.Component {
             { this.props.renderCard(item) }
           </Animated.View>
         );
+      } else if (index > this.state.index) {
+        return this.props.renderCard(item);
       }
-
-      return this.props.renderCard(item);
     });
   }
 
@@ -72,13 +101,5 @@ export default class Deck extends React.Component {
       duration: 250,
       toValue: { x: 0, y: 0 },
     }).start();
-  }
-
-  render() {
-    return (
-      <View>
-        { this._renderCards() }
-      </View>
-    );
   }
 }
