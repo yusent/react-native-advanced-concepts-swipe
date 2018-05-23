@@ -1,5 +1,16 @@
 import React from 'react';
-import { Animated, Dimensions, PanResponder, StyleSheet, View } from 'react-native';
+import {
+  Animated,
+  Dimensions,
+  LayoutAnimation,
+  PanResponder,
+  StyleSheet,
+  UIManager,
+  View,
+} from 'react-native';
+
+UIManager.setLayoutAnimationEnabledExperimental &&
+  UIManager.setLayoutAnimationEnabledExperimental(true);
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH / 4;
@@ -10,6 +21,10 @@ export default class Deck extends React.Component {
     onSwipeRight: () => {},
     renderNoMoreCards: () => {},
   };
+
+  componentDidUpdate() {
+    LayoutAnimation.spring();
+  }
 
   constructor(props) {
     super(props);
@@ -97,7 +112,13 @@ export default class Deck extends React.Component {
         );
       } else if (index > this.state.index) {
         return (
-          <Animated.View key={ item.id } style={ [styles.card, { zIndex: index * -1 }] }>
+          <Animated.View
+            key={ item.id }
+            style={[
+              styles.card,
+              { top: 10 * (index - this.state.index), zIndex: index * -1 },
+            ]}
+          >
             { this.props.renderCard(item) }
           </Animated.View>
         );
