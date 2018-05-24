@@ -16,6 +16,12 @@ export default class Deck extends React.Component {
     renderNoMoreCards: () => {},
   };
 
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps.data !== this.props.data) {
+      this.setState({ index: 0 });
+    }
+  }
+
   constructor(props) {
     super(props);
 
