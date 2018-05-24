@@ -2,15 +2,9 @@ import React from 'react';
 import {
   Animated,
   Dimensions,
-  LayoutAnimation,
   PanResponder,
   StyleSheet,
-  UIManager,
-  View,
 } from 'react-native';
-
-UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH / 4;
@@ -22,16 +16,13 @@ export default class Deck extends React.Component {
     renderNoMoreCards: () => {},
   };
 
-  componentDidUpdate() {
-    LayoutAnimation.spring();
-  }
-
   constructor(props) {
     super(props);
 
     this.state = { index: 0 };
 
     this._position = new Animated.ValueXY();
+    this._position2 = new Animated.ValueXY();
 
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -52,9 +43,9 @@ export default class Deck extends React.Component {
 
   render() {
     return (
-      <View>
+      <Animated.View style={ this._position2.getLayout() }>
         { this._renderCards() }
-      </View>
+      </Animated.View>
     );
   }
 
@@ -90,8 +81,14 @@ export default class Deck extends React.Component {
       onSwipeLeft(item);
     }
 
-    this._position.setValue({ x: 0, y: 0 });
-    this.setState({ index: this.state.index + 1 });
+    Animated.timing(this._position2, {
+      toValue: { x: 0, y: -10 },
+      duration: 250,
+    }).start(() => {
+      this._position.setValue({ x: 0, y: 0 });
+      this._position2.setValue({ x: 0, y: 0 });
+      this.setState({ index: this.state.index + 1 });
+    });
   }
 
   _renderCards() {
