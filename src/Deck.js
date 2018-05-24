@@ -18,8 +18,10 @@ export default class Deck extends React.Component {
 
   static getDerivedStateFromProps(nextProps, prevState) {
     if (nextProps.data !== this.props.data) {
-      this.setState({ index: 0 });
+      return { index: 0 };
     }
+
+    return null;
   }
 
   constructor(props) {
